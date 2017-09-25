@@ -10,7 +10,7 @@ You will need these modules to visualize the output
 * matplotlib
 
 # Documentation
-See the comments in the script.
+See the comments in the code.
 The algorithms in this library are described in:
 Aaron Kershenbaum. 1993. Telecommunications Network Design Algorithms. McGraw-Hill, Inc., New York, NY, USA.
 
