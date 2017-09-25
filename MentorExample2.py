@@ -26,8 +26,8 @@
 
   
 from sand.mentor import MENTOR
+from sand import disp
 import math, random
-import disp
 
 numNodes = 14
 # Node labels:

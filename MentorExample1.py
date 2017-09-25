@@ -28,7 +28,7 @@
   
 
 from sand.mentor import MENTOR
-import disp
+from sand import disp
 
 numNodes = 10
 # Node labels:
