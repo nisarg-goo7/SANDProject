@@ -26,15 +26,15 @@
 # Hill, Inc., New York, NY, USA.
 
 
-import logging
-
-class SANDAlgorithm(object):
-    def __init__(self):
-        self.logger = logging.getLogger(__name__) #self.__class__.
+from .main import SANDAlgorithm
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class ADD(SANDAlgorithm):  
-    def __init__(self, cost, Ccost, weight, center=0, Wlimit=10, th_move=0):
+    def __init__(self):
         SANDAlgorithm.__init__(self)
+        
+    def run(self, cost, Ccost, weight, center=0, Wlimit=10, th_move=0):        
         self.nt = len(cost)                 # Number of terminals
         self.nc = len(cost[0])              # Number of concentrators
         self.Wlimit = Wlimit                # Maximum number of terminals
@@ -44,11 +44,11 @@ class ADD(SANDAlgorithm):
         self.Ccost = Ccost                  # Cost to build a concentrator (nc)
         self.center = center                # Index of the central location
  
-    def run(self):
+
         self.logger.debug('Starting ADD Algorithm')
         # Associate all nodes with the central location
         # and calculate the initial cost
-        self.Cassoc = [self.center] * self.nt         # Association with a concentrator (output)
+        self.Cassoc = [self.center] * self.nt         # Association with a conc
         self.cTotal = sum([self.cost[t][self.Cassoc[t]] 
                             for t in range(self.nt)]) + self.Ccost[self.center]
         self.logger.debug("Initial cost = %d" % self.cTotal)
@@ -62,13 +62,13 @@ class ADD(SANDAlgorithm):
             savings = 0
             conc = 0
             for t in remConc:
-                expense = self.evalConc(t)
+                expense = self.__evalConc(t)
                 if(expense < savings):
                     savings = expense
                     conc = t
 
             if(savings < 0):
-                self.addConc(conc)
+                self.__addConc(conc)
                 self.cTotal += savings
                 self.logger.debug("Concentrator %d \
                          is added for total cost of %d" % (conc, self.cTotal))
@@ -85,9 +85,10 @@ class ADD(SANDAlgorithm):
             self.logger.error("Something is wrong, \
             detected cost discrepancy! %d %d %d" % (tCost, cCost, self.cTotal))
             
-        return({"cost": self.cTotal, "assoc": self.Cassoc})
+        return({"cost": self.cTotal, "center": self.center, 
+                "assoc": self.Cassoc, "conc":set(self.Cassoc)})
 
-    def evalConc(self, c):
+    def __evalConc(self, c):
         delta = [0] * self.nt
         ter = [0] * self.nt
         
@@ -123,7 +124,7 @@ class ADD(SANDAlgorithm):
         self.logger.debug("Savings for concentrator %d is %d" % (c, expense))
         return(expense)
 
-    def addConc(self, c):
+    def __addConc(self, c):
         delta = []
         ter = []
         for t in range(self.nt):
@@ -146,3 +147,61 @@ class ADD(SANDAlgorithm):
 
         self.logger.debug("Adding concentrator %d" % c)
 
+# print cost list of network produced by ADD algorithm
+def printCost(out, cost):   
+    concList = out["conc"]
+    termList = out["assoc"]
+    ncenter = out["center"]
+    numConc = len(concList)
+    nodeAssoc = [(i,termList.count(i)-1) for i in concList] 
+    print("Central node =",ncenter)
+    print("Number of concentrators =", numConc)
+    print("Number of nodes per concentrators =")
+    print('%4s\t%10s' % ("Conc", "Terminals"))
+    for n in nodeAssoc:
+        print('%4d\t%10d' % (n[0], n[1]))
+
+    print("Total Cost =", out["cost"])
+
+
+# Plot topology produced by MENTOR algorithm
+def plotNetwork(out, pos, labels=[], filename="figure_add.png", 
+                                        title='ADD Algorithm'):
+    numNodes = len(pos)
+    median = out["center"]
+    concList = out["conc"]
+    edges = [(k, out["assoc"][k]) for k in range(numNodes)]
+    tree = [(median, n) for n in out["conc"]]
+
+    plt.figure(figsize=(6,6))
+    G=nx.path_graph(numNodes)
+
+    nx.draw_networkx_edges(G, pos, edgelist=edges, alpha=0.3, 
+                                              edge_color="blue")
+    nx.draw_networkx_edges(G, pos, edgelist=tree, width=2, 
+                                              edge_color="blue", alpha=0.5)
+    
+    # Draw all nodes 
+    nx.draw_networkx_nodes(G, pos, node_size=10, node_color="green", alpha=0.5)
+    nx.draw_networkx_nodes(G, pos, nodelist=[median], node_size=150, 
+                                                     node_color="black")
+    nx.draw_networkx_nodes(G, pos, nodelist=concList, node_size=50, 
+                                                     node_color="red")
+
+    # Draw node and edge labels       
+    #elabels = {e:ch[mesh.index(e)] for e in mesh}
+    #nx.draw_networkx_edge_labels(G, pos, elabels, edgelist=mesh, font_size=10,     
+    #                                                        font_color="grey")
+    if labels:
+        nLabel = {n:labels[n] for n in concList}
+        npos = {n:(pos[n][0], pos[n][1]+0.03) for n in pos}
+        nx.draw_networkx_labels(G, npos, nLabel, nodelist=concList, 
+                                 font_size=10, font_color="black")
+
+    plt.xlim(-0.05,1.05)
+    plt.ylim(-0.05,1.05)
+    plt.axis('off')
+    plt.title(title)
+    plt.savefig(filename)
+    plt.show()
+    

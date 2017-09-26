@@ -27,8 +27,7 @@
 # McGraw-Hill, Inc., New York, NY, USA.
   
 
-from sand.mentor import MENTOR
-from sand import disp
+from sand.mentor import *
 
 numNodes = 10
 # Node labels:
@@ -62,7 +61,7 @@ algo = MENTOR()
 out = algo.run(cost, req, thres=0, rparm=0.5, alpha=0.0, cap=32, slack=0.2)
 
 # Print results:
-disp.printCost(out, cost, labels)
-disp.plotNetwork(out, pos, labels, title="MENTOR Algorthim - Assignment #1")
+printCost(out, cost, labels)
+plotNetwork(out, pos, labels, title="MENTOR Algorthim - Example #1")
     
 
