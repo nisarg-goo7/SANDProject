@@ -85,7 +85,7 @@ class ADD(SANDAlgorithm):
             self.logger.error("Something is wrong, \
             detected cost discrepancy! %d %d %d" % (tCost, cCost, self.cTotal))
             
-        return({"cost": self.cTotal, "center": self.center, 
+        return({"cost": self.cTotal, "center": self.center, "num": self.nt,
                 "assoc": self.Cassoc, "conc":set(self.Cassoc)})
 
     def __evalConc(self, c):
@@ -166,24 +166,25 @@ def printCost(out, cost):
 
 # Plot topology produced by MENTOR algorithm
 def plotNetwork(out, pos, labels=[], filename="figure_add.png", 
-                                        title='ADD Algorithm'):
-    numNodes = len(pos)
-    median = out["center"]
+                                        title='ADD Algorithm', show_center=False):
+    numNodes = out["num"]
+    center = out["center"]
     concList = out["conc"]
     edges = [(k, out["assoc"][k]) for k in range(numNodes)]
-    tree = [(median, n) for n in out["conc"]]
+    tree = [(center, n) for n in out["conc"]]
 
     plt.figure(figsize=(6,6))
     G=nx.path_graph(numNodes)
 
     nx.draw_networkx_edges(G, pos, edgelist=edges, alpha=0.3, 
                                               edge_color="blue")
-    nx.draw_networkx_edges(G, pos, edgelist=tree, width=2, 
+    if show_center:
+        nx.draw_networkx_edges(G, pos, edgelist=tree, width=2, 
                                               edge_color="blue", alpha=0.1)
     
     # Draw all nodes 
     nx.draw_networkx_nodes(G, pos, node_size=10, node_color="green", alpha=0.5)
-    nx.draw_networkx_nodes(G, pos, nodelist=[median], node_size=150, 
+    nx.draw_networkx_nodes(G, pos, nodelist=[center], node_size=150, 
                                                      node_color="black")
     nx.draw_networkx_nodes(G, pos, nodelist=concList, node_size=50, 
                                                      node_color="red")

@@ -35,19 +35,19 @@ class MENTOR(SANDAlgorithm):
     def __init__(self):
         SANDAlgorithm.__init__(self)
         
-    def run(self, cost, req, thres=0, rparm=0.5, dparm=0.5, alpha=0.5, cap=1, 
+    def run(self, cost, req, wparm=0, rparm=0.5, dparm=0.5, alpha=0.5, cap=1, 
             slack=0.4):
         self.nt = len(cost)                 # Number of nodes
         self.cost = cost                    # Cost matrix (nt x nc)
         self.req = req                      # Traffic matrix (nt x nc)        
-        self.thres = thres                  # Traffic Threshold
+        self.wparm = wparm                  # Traffic Threshold
         self.backbone = []
         self.maxWeight = 0
         self.assoc = []
         self.rParm = rparm                  # fraction of max distance [0,1]
         self.dParm = dparm                  # fraction for fig_of_merit [0,1]
         self.alpha = alpha                  # PrimDijk parameter [0,1] 
-        self.cap = cap                      # single-channel capacity
+        self.cap = cap                      # single-channel usable capacity
         self.slack = slack    
     
         self.logger.debug('Starting MENTOR Algorithm')
@@ -101,7 +101,7 @@ class MENTOR(SANDAlgorithm):
         self.maxWeight = max(weight)
         tbAssigned = []                 # to be assigned nodes
         for n in range(self.nt):
-            if(weight[n] >= self.thres):
+            if(weight[n] >= self.wparm):
                backbone.append(n)
             else:
                tbAssigned.append(n)
