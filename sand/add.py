@@ -179,7 +179,7 @@ def plotNetwork(out, pos, labels=[], filename="figure_add.png",
     nx.draw_networkx_edges(G, pos, edgelist=edges, alpha=0.3, 
                                               edge_color="blue")
     nx.draw_networkx_edges(G, pos, edgelist=tree, width=2, 
-                                              edge_color="blue", alpha=0.5)
+                                              edge_color="blue", alpha=0.1)
     
     # Draw all nodes 
     nx.draw_networkx_nodes(G, pos, node_size=10, node_color="green", alpha=0.5)
