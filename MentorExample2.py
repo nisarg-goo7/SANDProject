@@ -88,7 +88,7 @@ req[11][12] = req[12][11] = 5   #L,M
 
 # Call MENTOR algorithm:
 algo = MENTOR()
-out = algo.run(cost, req, thres=0, rparm=1, alpha=0, cap=10, slack=0.2)
+out = algo.run(cost, req, wparm=0, rparm=1, alpha=0, cap=10, slack=0.2)
 
 # Print results:
 printCost(out, cost, labels)

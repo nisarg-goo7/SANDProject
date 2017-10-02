@@ -58,7 +58,7 @@ for i in range(len(req)):
 
 # Call MENTOR algorithm:
 algo = MENTOR()
-out = algo.run(cost, req, thres=0, rparm=0.5, alpha=0.0, cap=32, slack=0.2)
+out = algo.run(cost, req, wparm=0, rparm=0.5, alpha=0.0, cap=32, slack=0.2)
 
 # Print results:
 printCost(out, cost, labels)

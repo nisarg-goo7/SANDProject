@@ -2,7 +2,7 @@
 SAND - A library of Standard Algorithms for Network Design
 
 # Installation
-Download the all file to your local machine keeping the directory structure. 
+Create a directory in your local machine then download all the files into that directory. 
 
 ## Dependencies
 You will need these modules to visualize the output 
@@ -11,7 +11,7 @@ You will need these modules to visualize the output
 
 # Documentation
 See the comments in the code.
-The algorithms in this library are described in:
+The algorithms ADD and MENTOR in this library are described in:
 Aaron Kershenbaum. 1993. Telecommunications Network Design Algorithms. McGraw-Hill, Inc., New York, NY, USA.
 
 # License
