@@ -40,7 +40,7 @@ class MENTOR(SANDAlgorithm):
         self.nt = len(cost)                 # Number of nodes
         self.cost = cost                    # Cost matrix (nt x nc)
         self.req = req                      # Traffic matrix (nt x nc)        
-        self.wparm = wparm                  # Traffic Threshold
+        self.wparm = wparm                  # fraction of max weight 
         self.backbone = []
         self.maxWeight = 0
         self.assoc = []
@@ -53,16 +53,23 @@ class MENTOR(SANDAlgorithm):
         self.logger.debug('Starting MENTOR Algorithm')
 
         # PART 1 : find backbone nodes
-        self.backbone, weight = self.__findBackbone()
-
+        self.backbone, weight, Cassoc = self.__findBackbone()
+        self.logger.debug('Backbone nodes = {} : {}'.format(len(self.backbone), 
+                                            ','.join(map(str,self.backbone))))
+        
         # PART 2 : Create topology
         median = self.__findBackboneMedian(self.backbone, weight)
-        pred = self.__findPrimDijk(median)
+        self.logger.debug('Backbone Median = {}'.format(median))
+        
+        pred = self.__findPrimDijk(median, Cassoc)
+        self.logger.debug('Pred nodes = {} {}'.format(len(pred), ','.join(map(str,pred))))
+        
+
         spPred, spDist = self.__setDist(median, pred)
         seqList, home = self.__setSequence(spPred)
         endList, multList = self.__compress(seqList, home)
-        tree = [(i, pred[i]) for i in range(len(pred))]
 
+        tree = [(i, pred[i]) for i in range(len(pred)) if i in self.backbone]
         return {"backbone": self.backbone, "tree": tree, "mesh": endList, 
                 "channels":multList, "median": median}
 
@@ -99,6 +106,7 @@ class MENTOR(SANDAlgorithm):
         median = self.__findMedian(weight)
         
         self.maxWeight = max(weight)
+        self.wparm *= self.maxWeight
         tbAssigned = []                 # to be assigned nodes
         for n in range(self.nt):
             if(weight[n] >= self.wparm):
@@ -118,7 +126,7 @@ class MENTOR(SANDAlgorithm):
                (1-self.dParm) * (weight[u] / self.maxWeight)
         
         radius = self.maxDist * self.rParm
-        self.Cassoc = [i for i in range(self.nt)]
+        Cassoc = [i for i in range(self.nt)]
         while tbAssigned:
             # while there are nodes to be assigned, associate nodes with
             # the closest backbone node if there are within a given radius
@@ -133,7 +141,7 @@ class MENTOR(SANDAlgorithm):
                         # with the closest backbone (or cheapest to connect)
                         if(self.cost[c][b] < lowestR):
                             lowestR = self.cost[c][b]
-                            self.Cassoc[c] = b
+                            Cassoc[c] = b
                             assgnd = True
                 if not assgnd:
                     # This node needs further evaluation 
@@ -151,20 +159,32 @@ class MENTOR(SANDAlgorithm):
             backbone.append(n)
             tbAssigned.remove(n)
                
-        return backbone, weight
+        return backbone, weight, Cassoc
     
-    def __findPrimDijk(self, root):
+    def __findPrimDijk(self, root, Cassoc):
         assert root in self.backbone        
-        outTree = list(range(self.nt))
-        pred = [root] * self.nt
+        #outTree = list(range(self.nt))
+        outTree = list(self.backbone)
+        # strating with the terminal association list, assing all backbone nodes
+        # to root as predecessor
+        pred = [(lambda x: root if Cassoc[x] == x else Cassoc[x])(i) for i in range(self.nt) ] 
         inTree = []
         label = list(self.cost[root]) # copy the cost of every node to root
         while outTree:
             # select a node that is in the backbone, not already inTree, 
             # and has the least cost
             # the first item selected will be the root
-            leastCost = min(label)
-            n = label.index(leastCost)
+            
+
+            n = root
+            leastCost = self.INF
+            for b in self.backbone:
+                if label[b] < leastCost:
+                    leastCost = label[b]
+                    n = b
+            
+            #leastCost = min(label)            
+            #n = label.index(leastCost)
             inTree.append(n)
             outTree.remove(n)
             label[n] = self.INF  # prevent the node from being considered again
@@ -345,8 +365,8 @@ def printCost(out, cost, labels):
 
     
 # Plot topology produced by MENTOR algorithm
-def plotNetwork(out, pos, labels=[], filename="figure_mentor.png", 
-                                        title='MENTOR Algorithm'):
+def plotNetwork(out, pos, labels=[], edisp=True, filename="figure_mentor.png", 
+                                                    title='MENTOR Algorithm'):
     numNodes = len(pos)
     mesh = out["mesh"]
     ch = out["channels"]   
@@ -354,13 +374,19 @@ def plotNetwork(out, pos, labels=[], filename="figure_mentor.png",
     median = out["median"]
     tree = out["tree"]
 
+    # Separate the mesh
+    bknet = [p for p in mesh if p[0] in backbone and p[1] in backbone ]
+    local = [p for p in mesh if p not in bknet]
+
+
     plt.figure(figsize=(6,6))
     G=nx.path_graph(numNodes)
 
     #nx.draw_networkx_edges(G,pos,alpha=0.1)
     #nx.draw_networkx_edges(G,pos,edgelist=edges,alpha=0.2)    
-    nx.draw_networkx_edges(G, pos, mesh, alpha=0.3, edge_color="blue")
-    nx.draw_networkx_edges(G, pos, edgelist=tree, width=2, edge_color="blue")
+    nx.draw_networkx_edges(G, pos, local, alpha=0.3, edge_color="green")
+    nx.draw_networkx_edges(G, pos, bknet, alpha=0.8, edge_color="blue")
+    nx.draw_networkx_edges(G, pos, tree, width=2, edge_color="blue")
     
     # Draw all nodes 
     nx.draw_networkx_nodes(G, pos, node_size=10, node_color="green", alpha=0.5)
@@ -369,9 +395,10 @@ def plotNetwork(out, pos, labels=[], filename="figure_mentor.png",
     nx.draw_networkx_nodes(G, pos, nodelist=backbone, node_size=50, 
                                                      node_color="red")
 
-    # Draw node and edge labels       
-    elabels = {e:ch[mesh.index(e)] for e in mesh}
-    nx.draw_networkx_edge_labels(G, pos, elabels, edgelist=mesh, 
+    # Draw node and edge labels
+    if edisp:       
+        elabels = {e:ch[mesh.index(e)] for e in mesh}
+        nx.draw_networkx_edge_labels(G, pos, elabels, edgelist=mesh, 
                                                font_size=10, font_color="grey")
     if labels:
         nLabel = {n:labels[n] for n in backbone}
