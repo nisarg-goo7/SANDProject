@@ -379,7 +379,7 @@ def plotNetwork(out, pos, labels=[], edisp=True, filename="figure_mentor.png",
     local = [p for p in mesh if p not in bknet]
 
 
-    plt.figure(figsize=(6,6))
+    plt.figure(figsize=(6,6), facecolor="white")
     G=nx.path_graph(numNodes)
 
     #nx.draw_networkx_edges(G,pos,alpha=0.1)

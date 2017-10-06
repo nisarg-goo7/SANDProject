@@ -175,7 +175,7 @@ def plotNetwork(out, pos, labels=[], filename="figure_add.png",
     edges = [(k, out["assoc"][k]) for k in range(numNodes)]
     tree = [(center, n) for n in out["conc"]]
 
-    plt.figure(figsize=(6,6))
+    plt.figure(figsize=(6,6), facecolor="white")
     G=nx.path_graph(numNodes)
 
     nx.draw_networkx_edges(G, pos, edgelist=edges, alpha=0.3, 
