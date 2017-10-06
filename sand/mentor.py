@@ -362,6 +362,9 @@ def printCost(out, cost, labels):
                                                    cost[x][y]*chlist[i]))
     print(('=' * 24))
     print('%12s%8d' % ('Total cost',total))
+    print('Number of backbone nodes =',len(backbone))
+    bknet = [p for p in mesh if p[0] in backbone and p[1] in backbone]
+    print('Number of links in the backbone =',len(bknet))
 
     
 # Plot topology produced by MENTOR algorithm
