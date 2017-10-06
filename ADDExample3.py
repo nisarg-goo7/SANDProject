@@ -42,7 +42,7 @@ for i in range(numNodes):
         d = round(math.sqrt(abs(r1-r2) + abs(c1-c2)) * 1000)
         cost[i][j] = cost[j][i] = d
 
-# Locate center node:
+# Locate the centre node near the centre of the graph:
 dmin=2**32-1
 ncenter=0
 for n in pos:
@@ -52,8 +52,9 @@ for n in pos:
         ncenter=n
         dmin=d
 
-# Set cost to center:
-Ccost = [cost[i][ncenter] + 100 for i in range(numNodes)]
+# Set cost to centre:
+conc_cost = 100
+Ccost = [cost[i][ncenter] + conc_cost for i in range(numNodes)]
 Ccost[ncenter] = 0
 
 # Set weight requirements:
@@ -61,11 +62,11 @@ weight = [1] * numNodes
 
 # Call ADD algorithm:
 algo = ADD()
-out = algo.run(cost, Ccost, weight, center=ncenter)
+out = algo.run(cost, Ccost, weight, Wlimit=5, center=ncenter)
 
 # Print results
 printCost(out, cost)
-plotNetwork(out, pos, labels, title="ADD Algorithm - Example 4")
+plotNetwork(out, pos, labels, title="ADD Algorithm - Example 3")
 
 
 

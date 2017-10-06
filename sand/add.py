@@ -153,7 +153,9 @@ def printCost(out, cost):
     termList = out["assoc"]
     ncenter = out["center"]
     numConc = len(concList)
-    nodeAssoc = [(i,termList.count(i)-1) for i in concList] 
+    nodeAssoc = [(i,termList.count(i)-1) for i in concList]
+    c = [cost[i][ncenter] for i in range(len(cost))] 
+    print("Original cost =", sum(c))
     print("Central node =",ncenter)
     print("Number of concentrators =", numConc)
     print("Number of nodes per concentrators =")
