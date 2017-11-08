@@ -74,6 +74,7 @@ class MENTOR(SANDAlgorithm):
         return {"backbone": self.backbone, "tree": tree, "mesh": endList, 
                 "channels":multList, "median": median}
 
+    # Set node weights
     def __findWeight(self): 
         weight = []                     # This is the weight
         for n in range(self.nt):
@@ -84,24 +85,25 @@ class MENTOR(SANDAlgorithm):
             weight.append(sum)
         return weight
               
-    def __findMedian(self, weight):               # for all
+    # Find the Median node for all nodes
+    def __findMedian(self, weight):
         moment = []
         for i in range(self.nt):
             cw = [self.cost[i][j] * weight[j] for j in range(self.nt)]
             moment.append(sum(cw))
         return moment.index(min(moment))
 
+    # Find the Median node for backbone nodes
     def __findBackboneMedian(self, backbone, weight):
-        # backbone nodes are a subset of the total nodes
         moment = []
         for i in range(len(backbone)):
             cw = [self.cost[backbone[i]][j] * weight[j] for j in backbone]
             moment.append(sum(cw))
         return backbone[moment.index(min(moment))]
         
+    # Select backbone nodes by comparing total traffic requirements
+    # to a threshold 
     def __findBackbone(self):       
-        # Select backbone nodes by comparing total traffic requirements
-        # to threshold
         backbone = []
         weight = self.__findWeight()
         median = self.__findMedian(weight)
@@ -122,6 +124,7 @@ class MENTOR(SANDAlgorithm):
         # calculate the distance between each unassigned node and
         # all backbone nodes to determine if it needs to be assigned
         
+        # The Figure of Merit function
         def figMerit(u):
             return self.dParm * (self.cost[u][median] / self.maxDist) + \
                (1-self.dParm) * (weight[u] / self.maxWeight)
@@ -162,6 +165,7 @@ class MENTOR(SANDAlgorithm):
                
         return backbone, weight, Cassoc
     
+    # Build initial tree topology 
     def __findPrimDijk(self, root, Cassoc):
         assert root in self.backbone        
         #outTree = list(range(self.nt))
@@ -194,15 +198,7 @@ class MENTOR(SANDAlgorithm):
                     pred[o] = n                
         return pred
 
-    def __makePair(self, n, i, j):
-        if i<j:
-            return n * i + j
-        else:
-            return n * j + i
-    
-    def __splitPair(self, n, p):
-        return p//n, p%n 
-        
+    # Find the shortest path through the tree topology
     def __setDist(self, root, pred):
         preOrder = [root]
         n = 1
@@ -304,6 +300,7 @@ class MENTOR(SANDAlgorithm):
         
         return seqList, home
     
+    # Select links and channels
     def __compress(self, seqList, home):
         # copy req to reqList
         reqList = list(self.req)
@@ -344,8 +341,16 @@ class MENTOR(SANDAlgorithm):
                 reqList[h][x] += ovflow21
          
         return endList, multList
-        
 
+    def __makePair(self, n, i, j):
+        if i<j:
+            return n * i + j
+        else:
+            return n * j + i
+    
+    def __splitPair(self, n, p):
+        return p//n, p%n 
+        
 # print cost list of network produced by MENTOR algorithm
 def printCost(out, cost, labels):   
     backbone = out["backbone"]
@@ -354,13 +359,13 @@ def printCost(out, cost, labels):
     
     total = 0
     print('%10s%10s%4s%8s' % ('From','To','Ch','Cost($)'))
-    print(('=' * 32))
+    print(('=' * 34))
     for i in range(len(mesh)):
         x, y = mesh[i]
         total += cost[x][y]*chlist[i]
         print('%10s%10s%4d%8d' % (labels[x], labels[y], chlist[i], 
                                                    cost[x][y]*chlist[i]))
-    print(('=' * 32))
+    print(('=' * 34))
     print('%12s%8d' % ('Total cost',total))
     print('Number of backbone nodes =',len(backbone))
     bknet = [p for p in mesh if p[0] in backbone and p[1] in backbone]
