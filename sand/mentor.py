@@ -30,6 +30,7 @@ from .main import SANDAlgorithm
 import math
 import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
  
 class MENTOR(SANDAlgorithm):  
     def __init__(self):
@@ -69,7 +70,7 @@ class MENTOR(SANDAlgorithm):
         seqList, home = self.__setSequence(spPred)
         endList, multList = self.__compress(seqList, home)
 
-        tree = [(i, pred[i]) for i in range(len(pred)) if i in self.backbone]
+        tree = [(i, pred[i]) for i in range(len(pred)) if i in self.backbone and i != pred[i]]
         return {"backbone": self.backbone, "tree": tree, "mesh": endList, 
                 "channels":multList, "median": median}
 
@@ -165,7 +166,7 @@ class MENTOR(SANDAlgorithm):
         assert root in self.backbone        
         #outTree = list(range(self.nt))
         outTree = list(self.backbone)
-        # strating with the terminal association list, assing all backbone nodes
+        # strating with the terminal association list, assigning all backbone nodes
         # to root as predecessor
         pred = [(lambda x: root if Cassoc[x] == x else Cassoc[x])(i) for i in range(self.nt) ] 
         inTree = []
@@ -173,9 +174,7 @@ class MENTOR(SANDAlgorithm):
         while outTree:
             # select a node that is in the backbone, not already inTree, 
             # and has the least cost
-            # the first item selected will be the root
-            
-
+            # the first item selected will be the root        
             n = root
             leastCost = self.INF
             for b in self.backbone:
@@ -240,6 +239,7 @@ class MENTOR(SANDAlgorithm):
         
         return spPred, spDist
         
+    # Find the order in which to consider node pairs
     def __setSequence(self, spPred):    
         home = [[None for i in range(self.nt)] for j in range(self.nt)]
         pair = [self.__makePair(self.nt,i,j)  for i in range(self.nt) 
@@ -353,14 +353,14 @@ def printCost(out, cost, labels):
     chlist = out["channels"]
     
     total = 0
-    print('%4s%4s%4s%8s' % ('From','To','Ch','Cost($)'))
-    print(('=' * 24))
+    print('%10s%10s%4s%8s' % ('From','To','Ch','Cost($)'))
+    print(('=' * 32))
     for i in range(len(mesh)):
         x, y = mesh[i]
         total += cost[x][y]*chlist[i]
-        print('%4s%4s%4d%8d' % (labels[x], labels[y], chlist[i], 
+        print('%10s%10s%4d%8d' % (labels[x], labels[y], chlist[i], 
                                                    cost[x][y]*chlist[i]))
-    print(('=' * 24))
+    print(('=' * 32))
     print('%12s%8d' % ('Total cost',total))
     print('Number of backbone nodes =',len(backbone))
     bknet = [p for p in mesh if p[0] in backbone and p[1] in backbone]
