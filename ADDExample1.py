@@ -39,7 +39,7 @@ nc = len(cost[0])
 ncenter = 0
 
 # Set cost to center:
-Ccost = [50] * (nc + 1)
+Ccost = [100] * (nc + 1)
 Ccost[ncenter] = 0
 
 # Set weight requirements:
